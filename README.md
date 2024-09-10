@@ -6,7 +6,7 @@ Este projeto fornece um serviço de backend para adicionar marcas d'água a arqu
 
 VIA FORMULARIO HTML: https://pdf-watermark-service.onrender.com/
 
-API: https://pdf-watermark-service.onrender.com:3000/
+API: https://pdf-watermark-service.onrender.com
 
 
 ## Tecnologias Utilizadas
