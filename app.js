@@ -11,6 +11,10 @@ const host = process.env.URL || 'http://localhost';
 // Configurar LIB - multer
 const upload = multer({ dest: 'uploads/' });
 
+// Servir arquivos estáticos (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname, 'public')));
+
+
 // Endpoint para adicionar marca d'água
 app.post('/watermark', upload.single('pdf'), async (req, res) => {
   const { email, nome } = req.body;
@@ -54,7 +58,7 @@ app.post('/watermark', upload.single('pdf'), async (req, res) => {
 
     // Responder com o link para download
     res.json({
-      downloadUrl: `${host}:${port}/${outputPath}`,
+      url: `${host}:${port}/${outputPath}`,
     });
 
   } catch (error) {
