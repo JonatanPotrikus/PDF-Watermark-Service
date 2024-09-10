@@ -38,16 +38,7 @@
         border: 1px solid #6af832;
         border-radius: 4px;
       }
-      button {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 4px;
-        background-color: #6af832;
-        color: #000;
-        font-size: 16px;
-        cursor: pointer;
-        margin-top: 10px;
-      }
+
       button:hover {
         background-color: #6af832;
       }
@@ -64,8 +55,65 @@
       }
       .powered-by {
         padding-top: 10px;
+        margin-top: 8px;
         color: #848484;
         font-size: 12px;
+      }
+
+      button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        background-color: #6af832;
+        color: #000;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+      }
+
+      button.loading {
+        background-color: #2c2c2c; /* Cor durante o carregamento */
+        color: #6af832;
+      }
+
+      .loading-spinner {
+        border: 5px solid #2c2c2c;
+        border-top: 5px solid #6af832;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s backwards infinite;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: none;
+      }
+
+      .loading button .loading-spinner {
+        display: block;
+      }
+
+      .loading button {
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: translate(-50%, -50%) rotate(0deg);
+        }
+        100% {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+
+      .blurred {
+        filter: blur(5px);
+        pointer-events: none;
       }
     </style>
   </head>
@@ -73,10 +121,13 @@
     <div class="container">
       <h1>PDF Watermark v1</h1>
       <form id="uploadForm" enctype="multipart/form-data">
-        <input type="file" id="pdfFile" name="pdf" accept="application/pdf" required />
-        <input type="text" id="email" name="email" placeholder="Seu E-mail" required />
-        <input type="text" id="nome" name="nome" placeholder="Seu Nome" required />
-        <button type="submit">Upload</button>
+        <div id="blurred">
+          <input type="file" id="pdfFile" name="pdf" accept="application/pdf" required />
+          <input type="text" id="email" name="email" placeholder="Seu E-mail" required />
+          <input type="text" id="nome" name="nome" placeholder="Seu Nome" required />
+        </div>
+        <button type="submit" id="uploadBtn">Upload</button>
+        <div class="loading-spinner"></div>
       </form>
       <div class="result" id="result"></div>
       <div class="powered-by">
@@ -87,6 +138,16 @@
     <script>
       document.getElementById("uploadForm").addEventListener("submit", function (event) {
         event.preventDefault();
+
+        const button = document.getElementById("uploadBtn");
+        const spinner = document.querySelector(".loading-spinner");
+        const blurred = document.getElementById("blurred");
+
+        button.disabled = true;
+        button.classList.add("loading");
+        blurred.classList.add("blurred");
+        button.innerText = "Aguarde...";
+        spinner.style.display = "block";
 
         const formData = new FormData();
         formData.append("pdf", document.getElementById("pdfFile").files[0]);
@@ -111,6 +172,14 @@
           .catch((error) => {
             console.error("Erro:", error);
             document.getElementById("result").innerHTML = "<p>Ocorreu um erro ao processar o PDF.</p>";
+          })
+          .finally((_) => {
+            // Restaurar o botão após o processo de upload
+            button.disabled = false;
+            button.classList.remove("loading"); // Adiciona a classe "loading" para mudar a cor e mostrar o spinner
+            button.innerText = "Upload";
+            spinner.style.display = "none";
+            blurred.classList.remove("blurred");
           });
       });
     </script>
