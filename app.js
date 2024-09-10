@@ -5,7 +5,8 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
+const host = process.env.URL || 'http://localhost';
 
 // Configurar LIB - multer
 const upload = multer({ dest: 'uploads/' });
@@ -53,7 +54,7 @@ app.post('/watermark', upload.single('pdf'), async (req, res) => {
 
     // Responder com o link para download
     res.json({
-      downloadUrl: `http://localhost:${port}/${outputPath}`,
+      downloadUrl: `${host}:${port}/${outputPath}`,
     });
 
   } catch (error) {
@@ -67,5 +68,5 @@ app.use('/downloads', express.static('downloads'));
 
 // Iniciar o servidor
 app.listen(port, () => {
-  console.log(`Servidor rodando em http://localhost:${port}`);
+  console.log(`Servidor rodando em ${host}:${port}`);
 });
