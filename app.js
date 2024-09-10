@@ -8,8 +8,17 @@ const app = express();
 const port = process.env.PORT || 3000;
 const host = process.env.URL || 'http://localhost';
 
-// Configurar LIB - multer
-const upload = multer({ dest: 'uploads/' });
+// Configurar armazenamento de arquivos temporários
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage });
 
 // Servir arquivos estáticos (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname, 'public')));
