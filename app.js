@@ -33,6 +33,9 @@ const upload = multer({ storage });
 // Servir arquivos estáticos (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname, "public")));
 
+// Definir o caminho absoluto da pasta downloads
+const downloadsPath = path.join(__dirname, "downloads");
+app.use("/downloads", express.static(downloadsPath));
 // Servir arquivos estáticos da pasta downloads
 app.use("/downloads", express.static(path.join(__dirname, "downloads")));
 
@@ -52,14 +55,14 @@ app.post("/watermark", upload.single("pdf"), async (req, res) => {
     pages.forEach((page) => {
       page.drawText(`Email: ${email}`, {
         x: 50,
-        y: 50,
+        y: 70,
         size: 20,
         color: rgb(0.75, 0.75, 0.75),
         rotate: degrees(0), // Caso desejar rotacionar o texto adicionar em GRAUS
       });
       page.drawText(`Nome: ${nome}`, {
         x: 50,
-        y: 30,
+        y: 50,
         size: 12,
         color: rgb(0.75, 0.75, 0.75),
         rotate: degrees(0), // Caso desejar rotacionar o texto adicionar em GRAUS
@@ -68,7 +71,7 @@ app.post("/watermark", upload.single("pdf"), async (req, res) => {
 
     // Salvar o PDF modificado
     const modifiedPdfBytes = await pdfDoc.save();
-    const downloadPath = path.join(__dirname, "downloads", `watermarked-${Date.now()}`);
+    const downloadPath = path.join(__dirname, "downloads", `watermarked-${Date.now()}.pdf`);
 
     // Garantir que o diretório de saída exista
     if (!fs.existsSync("downloads")) {
@@ -85,6 +88,19 @@ app.post("/watermark", upload.single("pdf"), async (req, res) => {
   } finally {
     fs.unlinkSync(path.join(__dirname, "uploads", req.file.filename));
   }
+});
+
+// Checa se o arquivo existe antes de servir
+app.get('/downloads/:file', (req, res) => {
+  const fileName = req.params.file;
+  const filePath = path.join(__dirname, 'downloads', fileName);
+
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      return res.status(404).send('File not found');
+    }
+    res.download(filePath);
+  });
 });
 
 // Iniciar o servidor
