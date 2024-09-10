@@ -7,6 +7,8 @@ const path = require("path");
 const app = express();
 const port = process.env.PORT || 3000;
 const host = process.env.URL || "http://localhost";
+const env = process.env.ENV || "dev";
+const url = env == "dev" ? `${host}:${port}` : host;
 
 // Verifica se a pasta uploads existe, se não, cria
 const uploadDir = path.join(__dirname, "uploads");
@@ -33,9 +35,6 @@ const upload = multer({ storage });
 // Servir arquivos estáticos (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname, "public")));
 
-// Definir o caminho absoluto da pasta downloads
-const downloadsPath = path.join(__dirname, "downloads");
-app.use("/downloads", express.static(downloadsPath));
 // Servir arquivos estáticos da pasta downloads
 app.use("/downloads", express.static(path.join(__dirname, "downloads")));
 
@@ -81,7 +80,7 @@ app.post("/watermark", upload.single("pdf"), async (req, res) => {
     fs.writeFileSync(downloadPath, modifiedPdfBytes);
 
     // Responder com o link para download
-    res.json({ url: `${host}:${port}/downloads/${path.basename(downloadPath)}` });
+    res.json({ url: `${url}/downloads/${path.basename(downloadPath)}` });
   } catch (error) {
     console.error("Erro ao adicionar marca d'água:", error);
     res.status(500).json({ error: "Erro ao processar o PDF." });
@@ -91,13 +90,13 @@ app.post("/watermark", upload.single("pdf"), async (req, res) => {
 });
 
 // Checa se o arquivo existe antes de servir
-app.get('/downloads/:file', (req, res) => {
+app.get("/downloads/:file", (req, res) => {
   const fileName = req.params.file;
-  const filePath = path.join(__dirname, 'downloads', fileName);
+  const filePath = path.join(__dirname, "downloads", fileName);
 
   fs.access(filePath, fs.constants.F_OK, (err) => {
     if (err) {
-      return res.status(404).send('File not found');
+      return res.status(404).send("File not found");
     }
     res.download(filePath);
   });
