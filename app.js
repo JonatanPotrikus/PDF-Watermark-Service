@@ -1,17 +1,17 @@
-const express = require('express');
-const multer = require('multer');
-const { PDFDocument, rgb, degrees } = require('pdf-lib'); // Importar degrees diretamente
-const fs = require('fs');
-const path = require('path');
+const express = require("express");
+const multer = require("multer");
+const { PDFDocument, rgb, degrees } = require("pdf-lib"); // Importar degrees diretamente
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 const port = process.env.PORT || 3000;
-const host = process.env.URL || 'http://localhost';
+const host = process.env.URL || "http://localhost";
 
 // Configurar armazenamento de arquivos temporários
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
     cb(null, file.originalname);
@@ -21,11 +21,13 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Servir arquivos estáticos (HTML, CSS, JS)
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
+// Servir arquivos estáticos da pasta downloads
+app.use('/downloads', express.static(path.join(__dirname, 'downloads')));
 
 // Endpoint para adicionar marca d'água
-app.post('/watermark', upload.single('pdf'), async (req, res) => {
+app.post("/watermark", upload.single("pdf"), async (req, res) => {
   const { email, nome } = req.body;
   const filePath = req.file.path;
 
@@ -56,28 +58,27 @@ app.post('/watermark', upload.single('pdf'), async (req, res) => {
 
     // Salvar o PDF modificado
     const modifiedPdfBytes = await pdfDoc.save();
-    const outputPath = path.join('downloads', `watermarked-${Date.now()}.pdf`);
+    const downloadPath = path.join(__dirname, "downloads", `watermarked-${Date.now()}`);
 
     // Garantir que o diretório de saída exista
-    if (!fs.existsSync('downloads')) {
-      fs.mkdirSync('downloads');
+    if (!fs.existsSync("downloads")) {
+      fs.mkdirSync("downloads");
     }
 
-    fs.writeFileSync(outputPath, modifiedPdfBytes);
+    fs.writeFileSync(downloadPath, modifiedPdfBytes);
 
     // Responder com o link para download
-    res.json({
-      url: `${host}:${port}/${outputPath}`,
-    });
-
+    res.json({ url: `/downloads/${path.basename(downloadPath)}` });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Erro ao processar o PDF.' });
+    console.error("Erro ao adicionar marca d'água:", error);
+    res.status(500).json({ error: "Erro ao processar o PDF." });
+  } finally {
+    fs.unlinkSync(path.join(__dirname, "uploads", req.file.filename));
   }
 });
 
 // Servir arquivos estáticos da pasta downloads
-app.use('/downloads', express.static('downloads'));
+app.use("/downloads", express.static("downloads"));
 
 // Iniciar o servidor
 app.listen(port, () => {
