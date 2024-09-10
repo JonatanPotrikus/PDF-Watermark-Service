@@ -1,0 +1,54 @@
+{
+  "info": {
+    "_postman_id": "12345",
+    "name": "PDF Watermark Service",
+    "description": "Coleção para testar o serviço de marca d'água em PDFs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Add Watermark to PDF",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "multipart/form-data"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "pdf",
+              "type": "file",
+              "src": "./sample.pdf"
+            },
+            {
+              "key": "email",
+              "type": "text",
+              "value": "jonatanpotrikus@gmail.com"
+            },
+            {
+              "key": "nome",
+              "type": "text",
+              "value": "Jonatan Potrikus"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:3000/watermark",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "watermark"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

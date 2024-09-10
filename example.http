@@ -1,0 +1,17 @@
+POST http://localhost:3000/watermark
+Content-Type: multipart/form-data; boundary=boundary123
+
+--boundary123
+Content-Disposition: form-data; name="pdf"; filename="sample.pdf"
+Content-Type: application/pdf
+
+< ./sample.pdf
+--boundary123
+Content-Disposition: form-data; name="email"
+
+jonatanpotrikus@gmail.com
+--boundary123
+Content-Disposition: form-data; name="nome"
+
+Jonatan Potrikus
+--boundary123--
