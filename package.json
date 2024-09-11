@@ -9,12 +9,14 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "PoC - Prova de trabalho de um serviço de adicionar marca d`agua em PDFs",
   "dependencies": {
     "axios": "^1.7.7",
+    "axios-cookiejar-support": "^5.0.2",
     "express": "^4.20.0",
     "multer": "^1.4.5-lts.1",
-    "pdf-lib": "^1.17.1"
+    "pdf-lib": "^1.17.1",
+    "tough-cookie": "^4.1.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.4"

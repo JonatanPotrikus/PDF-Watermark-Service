@@ -4,12 +4,19 @@ const axios = require("axios");
 const { PDFDocument, rgb, degrees } = require("pdf-lib"); // Importar degrees diretamente
 const fs = require("fs");
 const path = require("path");
+const tough = require("tough-cookie"); // Para lidar com cookies
+const { wrapper } = require("axios-cookiejar-support"); // Importa a função correta
 
 const app = express();
 const port = process.env.PORT || 3000;
 const host = process.env.URL || "http://localhost";
 const env = process.env.ENV || "dev";
 const url = env == "dev" ? `${host}:${port}` : host;
+
+// Cria um "jar" para armazenar os cookies
+const cookieJar = new tough.CookieJar();
+// Habilita suporte a cookies no Axios
+const client = wrapper(axios.create({ jar: cookieJar, withCredentials: true }));
 
 // Verifica se a pasta uploads existe, se não, cria
 const uploadDir = path.join(__dirname, "uploads");
@@ -113,11 +120,33 @@ app.get("/download", async (req, res) => {
   }
 
   try {
-    const pdfResponse = await axios.get(arquivo, {
+    console.log("Buscar arquivo: ", arquivo);
+
+    let response = await client.get(arquivo, {
       responseType: "arraybuffer",
+      maxRedirects: 0, // Não seguir redirecionamentos automaticamente
+      validateStatus: (status) => status >= 200 && status < 400, // Permite redirecionamentos 300-399
     });
 
-    const originalPdf = pdfResponse.data;
+    // Se houver um cabeçalho 'Location', é um redirecionamento
+    if (response.status >= 300 && response.status < 400 && response.headers["location"]) {
+      const redirectUrl = response.headers["location"];
+      console.log(`Redirecionado para: ${redirectUrl}`);
+
+      // Seguir o redirecionamento manualmente, enviando os cookies recebidos
+      response = await client.get(redirectUrl, {
+        responseType: "arraybuffer",
+      });
+    }
+
+    const originalPdf = response.data;
+    const contentType = response.headers["content-type"];
+
+    console.log("Arquivo obtido com sucesso! Type: ", contentType);
+
+    if (!contentType || !contentType.includes("pdf")) {
+      throw new Error("O arquivo obtido não é um PDF. Tipo de conteúdo: " + contentType);
+    }
 
     // Adiciona marca d'água ao PDF
     const watermarkedPdf = await addWatermark(originalPdf, email, name);
@@ -130,6 +159,7 @@ app.get("/download", async (req, res) => {
     // // Envia o PDF com marca d'água
     res.send(Buffer.from(watermarkedPdf));
   } catch (err) {
+    console.log("ERRO: ", err);
     res.status(500).send("Erro ao processar o PDF");
   }
 });

@@ -20,4 +20,11 @@ Jonatan Potrikus
 
 ### Watermark - GET - Buscar por URL
 GET http://localhost:3000/download?email=jonatan@gmail.com&name=JonatanPotrikus&arquivo=https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf
+
+Content-Type: application/json
+
+
+### Watermark - GET - Buscar por URL Com location
+GET http://localhost:3000/download?email=jonatan@gmail.com&name=JonatanPotrikus&arquivo=https%3A%2F%2Fbravi.instructure.com%2Fcourses%2F227%2Ffiles%2F2034%2Fdownload%3Fdownload_frd%3D1%26verifier%3DbSDEgXHDxaCs7aD9Va6IZvGSotfq2rxvgQ6lHzMt
+
 Content-Type: application/json
