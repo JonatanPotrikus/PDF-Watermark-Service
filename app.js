@@ -1,5 +1,6 @@
 const express = require("express");
 const multer = require("multer");
+const axios = require("axios");
 const { PDFDocument, rgb, degrees } = require("pdf-lib"); // Importar degrees diretamente
 const fs = require("fs");
 const path = require("path");
@@ -101,6 +102,55 @@ app.get("/downloads/:file", (req, res) => {
     res.download(filePath);
   });
 });
+
+// Exemplo arquivo = https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf
+app.get("/download", async (req, res) => {
+  // TODO: Tornar esses query params dinamicos
+  const { email, name, arquivo } = req.query;
+
+  if (!email || !name || !arquivo) {
+    return res.status(412).send({ message: "Parametros inválidos! [email, name e arquivo]" });
+  }
+
+  try {
+    const pdfResponse = await axios.get(arquivo, {
+      responseType: "arraybuffer",
+    });
+
+    const originalPdf = pdfResponse.data;
+
+    // Adiciona marca d'água ao PDF
+    const watermarkedPdf = await addWatermark(originalPdf, email, name);
+
+    // Envia o PDF com marca d'água de volta ao usuário
+    // Define o header para download do PDF
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="watermarked_${name}.pdf"`);
+
+    // // Envia o PDF com marca d'água
+    res.send(Buffer.from(watermarkedPdf));
+  } catch (err) {
+    res.status(500).send("Erro ao processar o PDF");
+  }
+});
+
+// Função para adicionar marca d'água
+// TODO: Usar esta função tambem no endpoint POST
+async function addWatermark(pdfBuffer, email, name) {
+  const pdfDoc = await PDFDocument.load(pdfBuffer);
+  const pages = pdfDoc.getPages();
+
+  pages.forEach((page) => {
+    page.drawText(`${email} - ${name}`, {
+      x: 50,
+      y: 50,
+      size: 30,
+      opacity: 0.5,
+    });
+  });
+
+  return await pdfDoc.save();
+}
 
 // Iniciar o servidor
 app.listen(port, () => {
